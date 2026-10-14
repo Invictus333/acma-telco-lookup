@@ -1,4 +1,4 @@
-# ACMA Telco Lookup — GitHub Pages
+# ACMA Telco Lookup — GitHub Pages v1.1
 
 A static web app for exact numeric ACMA Site ID lookup and place-name candidate search, with an interactive map and site links. It calls ACMA directly from the visitor's browser. No notebook, Python runtime, API key or server backend is required by this version.
 
@@ -17,13 +17,31 @@ A static web app for exact numeric ACMA Site ID lookup and place-name candidate 
 
 To update the app, replace `index.html` in the repository and commit. GitHub Pages redeploys it. No build tools, packages or GitHub Actions workflow file are needed for this branch-based setup.
 
+## Update your existing repository
+
+1. Extract this ZIP. It contains `index.html` and `README.md` directly.
+2. Open your existing `acma-telco-lookup` repository on GitHub.
+3. Choose **Add file → Upload files** and upload the replacement `index.html` (and optionally `README.md`) at the repository root.
+4. Commit the changes to `main`. Keep the filename `index.html`.
+5. Wait for the Pages deployment to finish and refresh the website. Its header should show **v1.1**.
+6. The website URL stays the same. You do not need to create another repository or change the URL in Experience Builder.
+
+### Refinements in v1.1
+
+- Place name is the default search mode. Select Site ID when you know the numeric ACMA ID.
+- Compact header and search bar; maximum candidates is under **Search options**.
+- On wide screens (at least 1100 pixels), details sit beside the map. At narrower sizes they sit below it.
+- The completed search term and actual search mode remain visible above the results, even when the inputs change.
+- **Copy Site ID**, **Copy coordinates** and **Copy site summary** help transfer details. If clipboard access is blocked, selectable text appears for manual copying. Coordinate copying uses latitude, longitude in that order, with no datum transformation.
+- **Look up this Site ID** reruns a selected place-name candidate as an exact numeric search. This identifies the ACMA record; it does not establish a Crown-account association.
+
 ## Embed in ArcGIS Experience Builder
 
 1. Edit your saved Experience.
 2. Add an **Embed** widget in the main page area.
 3. Select **Embed by → URL**.
 4. Paste the full HTTPS GitHub Pages address, including the repository path.
-5. Give the widget enough height for the search panel, candidate list, map and details; start around 850 pixels on desktop or use the page's full available height.
+5. Use a wide main-page area. Start around 700 pixels high on desktop, or use the page's full available height. Narrow layouts put details below the map and may require a taller widget or scrolling.
 6. Use Preview and run a place-name search. Select a candidate and check its map point and links.
 7. Save and publish the Experience.
 
@@ -35,7 +53,7 @@ The embedded app has its own map and candidate list. Results do not automaticall
 - **Site ID:** returns only an exact matching numeric ID; never substitutes a different API record. The KML endpoint is supplied as a download link; automatic KML fetching is not used because that endpoint did not return a browser cross-origin permission header during testing.
 - **Place name:** searches ACMA's general text endpoint using a locality, road, property, landmark or site-name fragment. Shows candidate names, IDs and coordinates; the first candidate is not confirmed or auto-selected.
 - **CN references:** search the known place associated with the CN reference. A CN reference alone is not a numeric ACMA Site ID and this app has no Crown-database connection.
-- **Maximum candidates:** accepts 1–200. If the returned results are capped, the app warns that the list may be incomplete. Increase the limit or narrow the term. It does not retrieve additional pages automatically.
+- **Maximum candidates:** under Search options; accepts 1–200. If the returned results are capped, the app warns that the list may be incomplete. Increase the limit or narrow the term. It does not retrieve additional pages automatically.
 
 Select a candidate in the list or click its map marker. Use **Show all sites** to return to the result extent. Topographic and aerial imagery basemaps are provided. Scroll-wheel zoom is off so the embedded map does not trap page scrolling; use the map zoom buttons or touch gestures.
 
@@ -54,8 +72,9 @@ During preparation:
 - The JSON endpoint returned `Access-Control-Allow-Origin: *` for a request using a GitHub Pages-style Origin header.
 - Parser, exact-ID handling, candidate counts, result-limit warnings, missing coordinates and error routing were checked with live captured responses.
 - Application scripts passed JavaScript syntax checks.
+- Version 1.1 passed 42 core lookup checks and 28 UI interaction checks using a DOM harness, covering search context, candidate/exact labels, the ID shortcut, copy text and blocked-clipboard fallback.
 
-End-to-end browser rendering, GitHub Pages deployment and Experience Builder iframe execution have not been verified in the user's environment. Confirm the checklist below after publishing.
+The original version was shown working on the user's standalone page. Version 1.1 layout rendering and Experience Builder iframe execution still need checking in the user's browser. The DOM harness does not test browser layout or iframe permissions. Confirm the checklist below after updating.
 
 ## Check after publishing
 
@@ -66,6 +85,10 @@ End-to-end browser rendering, GitHub Pages deployment and Experience Builder ifr
 5. Enter **CN075**. Confirm it asks for the associated known place name.
 6. Try a small candidate limit, e.g. **5** for Braidwood. Confirm the incomplete-results warning appears.
 7. Repeat one search inside Experience Builder. Check candidate selection, map tiles and external links there too.
+8. Change the input and mode after a search; confirm the results still identify the term and mode that produced them.
+9. Select a place-name candidate, then choose **Look up this Site ID**. Confirm it becomes an exact result and clears the other candidate points.
+10. Test all three copy buttons, including inside the embed. If automatic copy is blocked, select the displayed text and press Ctrl+C (Command+C on Mac).
+11. Resize the embed and preview desktop and mobile layouts. Check that details and map controls remain accessible.
 
 ## Troubleshooting
 
