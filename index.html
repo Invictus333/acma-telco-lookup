@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Find ACMA telecommunications sites by numeric Site ID or place name. Compare candidate sites on a map.">
+<title>ACMA Telco Lookup</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{color-scheme:light;--ink:#213544;--muted:#566b7a;--blue:#006c96;--pale:#e7f2f8;--line:#d3dfe7;--surface:#f3f6f8;--error:#9d322c;--warn:#77520a;font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink)}button,input,select{font:inherit}button,a{touch-action:manipulation}button{cursor:pointer}button:disabled{cursor:wait;opacity:.65}a{color:var(--blue)}:focus-visible{outline:3px solid #eb9e23;outline-offset:3px}[hidden]{display:none!important}
+header{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line)}h1{font-size:23px;font-weight:600;line-height:1.2;margin:0 0 3px}header p{margin:0;color:var(--muted);font-size:13px}.version{font-size:12px;color:var(--muted);white-space:nowrap}
+form{display:grid;grid-template-columns:minmax(150px,1fr) 160px 135px auto;gap:12px;padding:16px 24px;background:var(--surface);align-items:end}label{display:grid;gap:5px;font-size:13px;font-weight:500}input,select{background:#fff;border:1px solid #afc2cf;border-radius:4px;color:var(--ink);padding:9px 11px;min-height:41px;width:100%;min-width:0}button.primary{background:var(--blue);color:#fff;border:1px solid var(--blue);padding:9px 24px;border-radius:4px;min-height:41px;font-weight:500}button.secondary{background:#fff;color:var(--ink);border:1px solid #afc2cf;padding:7px 12px;border-radius:4px}
+.search-help{padding:0 24px 12px;margin:0;background:var(--surface);color:var(--muted);font-size:12px}.status{padding:12px 24px;margin:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.status[data-tone="error"]{color:var(--error);background:#fff0ee}.status[data-tone="warning"]{color:var(--warn);background:#fff8e7}.warning{padding:10px 24px;background:#fff8e7;color:var(--warn);border-bottom:1px solid #ebd9ad;font-size:13px}
+.workspace{display:grid;grid-template-columns:340px minmax(0,1fr);min-height:650px}aside{border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}.list-head{padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface);display:flex;justify-content:space-between;gap:12px;align-items:center}.list-head h2{font-size:15px;font-weight:600;margin:0}.list-count{font-size:12px;color:var(--muted)}.results{max-height:710px;overflow:auto}.empty{padding:26px 20px;color:var(--muted)}.result{display:block;width:100%;text-align:left;padding:14px 18px;background:#fff;border:0;border-bottom:1px solid var(--line);color:var(--ink)}.result:hover{background:#f5f9fc}.result[aria-pressed="true"]{background:var(--pale);box-shadow:inset 4px 0 var(--blue)}.result-name{display:block;font-weight:500;margin-bottom:5px;overflow-wrap:anywhere}.result-meta{display:block;font-size:12px;color:var(--muted)}.result-note{display:block;font-size:12px;color:var(--warn);margin-top:4px}
+.map-section{min-width:0}.map-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:#fff}.map-toolbar label{display:flex;align-items:center;gap:8px;font-size:12px}.map-toolbar select{width:auto;min-height:34px;padding:5px 9px;font-size:12px}#map{height:455px;width:100%;background:#e6edf1}.map-alert{padding:8px 16px;color:var(--warn);background:#fff8e7;font-size:12px}.detail{padding:18px 20px;border-top:1px solid var(--line);min-height:200px}.detail h2{font-size:17px;line-height:1.4;margin:0 0 10px;font-weight:600}.detail .tag{display:inline-block;padding:3px 8px;border-radius:3px;background:var(--pale);color:#215d77;font-size:12px;margin-bottom:10px}.detail dl{margin:0;display:grid;grid-template-columns:120px minmax(0,1fr);gap:5px 15px;font-size:13px}.detail dt{color:var(--muted)}.detail dd{margin:0;overflow-wrap:anywhere}.links{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px}.links a{font-size:13px;font-weight:500}.coordinate-note{font-size:12px;color:var(--muted);margin:12px 0 0}.foot{padding:12px 24px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}.leaflet-popup-content{font:13px/1.5 system-ui,sans-serif}.leaflet-popup-content strong{display:block;margin-bottom:5px}.leaflet-container{font:12px system-ui,sans-serif}.leaflet-tooltip{font:12px system-ui,sans-serif}
+@media(min-width:1000px){.workspace{min-height:calc(100vh - 211px)}#map{height:min(62vh,620px);min-height:420px}.results{max-height:calc(100vh - 250px)}}
+@media(max-width:760px){header{padding:16px}form{grid-template-columns:1fr 1fr;padding:14px 16px}form label:first-child{grid-column:1/-1}form .primary{grid-column:1/-1}.search-help,.status,.warning{padding-left:16px;padding-right:16px}.workspace{grid-template-columns:1fr;min-height:0}aside{border-right:0}.results{max-height:280px}#map{height:390px}.detail{padding:16px}.detail dl{grid-template-columns:105px minmax(0,1fr)}.version{display:none}}
+</style>
+</head>
+<body>
+<header><div><h1>ACMA Telco Lookup</h1><p>Find a site by ACMA number, locality, road or landmark.</p></div><span class="version">Public ACMA data · v1.0</span></header>
+<form id="search-form">
+<label for="query">ACMA Site ID or place name<input id="query" name="query" type="text" placeholder="e.g. Gillamatong or 9723" maxlength="200" required autocomplete="off"></label>
+<label for="mode">Search mode<select id="mode" name="mode"><option value="auto">Auto</option><option value="id">Site ID</option><option value="place">Place name</option></select></label>
+<label for="limit">Maximum candidates<input id="limit" name="limit" type="number" min="1" max="200" step="1" value="50" required></label>
+<button class="primary" id="search-button" type="submit">Search</button>
+</form>
+<p class="search-help">For a CN reference, search its known place or site name. Auto uses digits as a Site ID; choose Place name for numeric text such as a postcode.</p>
+<p id="status" class="status" role="status" aria-live="polite">Enter a Site ID or place name to search ACMA.</p>
+<div id="warning" class="warning" hidden></div>
+<div class="workspace">
+<aside aria-label="Search results"><div class="list-head"><h2 id="results-heading">Candidate sites</h2><span id="result-count" class="list-count">0 results</span></div><div id="results" class="results"><p class="empty">Your results will appear here. Select a site to inspect its details and map location.</p></div></aside>
+<section class="map-section" aria-label="Site map and details">
+<div class="map-toolbar"><button type="button" id="fit" class="secondary" disabled>Show all sites</button><label for="basemap">Basemap<select id="basemap"><option value="topo">Topographic</option><option value="imagery">Aerial imagery</option></select></label></div>
+<div id="map" role="region" aria-label="Interactive map of ACMA site locations"></div>
+<div id="map-alert" class="map-alert" hidden></div>
+<div id="detail" class="detail" aria-live="polite"><h2>Select a result</h2><p>Compare candidate names and map locations against the site you are investigating.</p><p class="coordinate-note">Place-name results are candidates for review. This app does not confirm links to Crown accounts.</p></div>
+</section>
+</div>
+<footer class="foot">Source: Australian Communications and Media Authority, Register of Radiocommunications Licences. Search results are retrieved live. Map positions are for visual lookup; the JSON API does not state the coordinate datum.</footer>
+<script id="lookup-core">
+(function(global){
+'use strict';
+const API='https://api.acma.gov.au/SpectrumLicensingAPIOuterService/OuterService.svc';
+const KML='https://backend.acma.gov.au/rrl/v1/sites/';
+class LookupError extends Error{constructor(message,kind='service'){super(message);this.name='LookupError';this.kind=kind;}}
+function validateQuery(value,mode,limit){
+ const query=String(value??'').trim();
+ if(!query||query.length>200)throw new LookupError('Enter a Site ID or place name, up to 200 characters.','input');
+ if(!['auto','id','place'].includes(mode))throw new LookupError('Choose Auto, Site ID or Place name.','input');
+ if(!Number.isInteger(Number(limit))||Number(limit)<1||Number(limit)>200)throw new LookupError('Maximum candidates must be a whole number from 1 to 200.','input');
+ const resolved=mode==='auto'?(/^[0-9]+$/.test(query)?'id':'place'):mode;
+ if(resolved==='id'&&(!/^[0-9]{1,12}$/.test(query)||Number(query)<=0))throw new LookupError('Enter a positive numeric ACMA Site ID.','input');
+ if(/^CN[\s-]*[0-9]+$/i.test(query))throw new LookupError('Search the known locality, road, landmark or site name associated with this CN reference.','input');
+ return {query:resolved==='id'?String(Number(query)):query,mode:resolved,limit:Number(limit)};
+}
+function numericId(value){const s=String(value??'').trim();return /^[0-9]{1,12}$/.test(s)&&Number(s)>0?String(Number(s)):null;}
+function coordinate(lat,lon){
+ if(lat===null||lat===undefined||lon===null||lon===undefined||String(lat).trim()===''||String(lon).trim()===''||typeof lat==='boolean'||typeof lon==='boolean')return null;
+ const a=Number(lat),b=Number(lon);
+ return Number.isFinite(a)&&Number.isFinite(b)&&a>=-90&&a<=90&&b>=-180&&b<=180&&!(a===0&&b===0)?{lat:a,lon:b}:null;
+}
+function apiUrl(spec){const url=new URL(API+'/SiteSearchJSON/'+encodeURIComponent(spec.query));url.searchParams.set('resultsLimit',spec.mode==='id'?'5':String(spec.limit));if(spec.mode==='id'){url.searchParams.set('searchField','SITE_ID');url.searchParams.set('searchOption','matches');}return url.href;}
+function siteRecord(row,sourceUrl){const id=numericId(row.SITE_ID);if(!id)return null;const c=coordinate(row.LATITUDE,row.LONGITUDE);return {id,name:String(row.LONG_NAME??''),city:String(row.CITY??''),state:String(row.STATE??''),postcode:String(row.POSTCODE??''),description:String(row.DESCRIPTION??''),coordinate:c,source:'ACMA JSON API',sourceUrl,kmlUrl:KML+id+'/kml',detailsUrl:'https://www.acma.gov.au/register-radiocommunication-licences-rrl#/sites/'+id,datumNote:'Datum not declared by the JSON API. Decimal coordinates shown as supplied by ACMA; map placement is approximate for visual lookup.',raw:row};}
+function parseSites(payload,spec,url){
+ if(!payload||typeof payload!=='object'||Array.isArray(payload)||!Object.prototype.hasOwnProperty.call(payload,'Site'))throw new LookupError('ACMA returned an unexpected response format.');
+ let rows=payload.Site;if(rows===null)rows=[];if(rows&&typeof rows==='object'&&!Array.isArray(rows))rows=[rows];
+ if(!Array.isArray(rows)||rows.some(r=>!r||typeof r!=='object'||Array.isArray(r)))throw new LookupError('ACMA returned an unexpected site list.');
+ if(spec.mode==='id'){const exact=rows.filter(r=>numericId(r.SITE_ID)===spec.query);if(!exact.length)throw new LookupError('No exact ACMA record found for Site '+spec.query+'. Try its known place or site name.','no-match');if(exact.length!==1)throw new LookupError('ACMA returned duplicate records for this Site ID. No site was selected.','ambiguous');const s=siteRecord(exact[0],url);if(!s.coordinate)throw new LookupError('The exact record has no usable coordinate.');return {sites:[s],total:1,truncated:false,warnings:[],sourceUrl:url,mode:'id'};}
+ const totals=rows.filter(r=>r.TOTAL_RESULT!==null&&r.TOTAL_RESULT!==undefined&&String(r.TOTAL_RESULT).trim()!=='').map(r=>Number(r.TOTAL_RESULT)).filter(n=>Number.isInteger(n)&&n>=0);
+ const total=totals.length?Math.max(...totals):(rows.length?null:0),sites=[],seen=new Set(),warnings=[];
+ let skipped=0,duplicates=0;
+ for(const row of rows.slice(0,spec.limit)){const s=siteRecord(row,url);if(!s){skipped++;continue;}if(seen.has(s.id)){duplicates++;continue;}seen.add(s.id);sites.push(s);}
+ if(skipped)warnings.push(skipped+' record(s) had no valid Site ID and were omitted.');
+ if(duplicates)warnings.push(duplicates+' duplicate Site ID record(s) were omitted.');
+ const truncated=(total!==null&&total>rows.length)||rows.length>spec.limit||(total===null&&rows.length>=spec.limit);
+ if(truncated)warnings.push('ACMA reports '+(total===null?'more possible matches':total+' matching records')+'. Results may be incomplete. Increase the candidate limit or use a more distinctive place name.');
+ const missing=sites.filter(s=>!s.coordinate).length;if(missing)warnings.push(missing+' candidate(s) have no usable coordinates and remain in the list only.');
+ return {sites,total,truncated,warnings,sourceUrl:url,mode:'place'};
+}
+async function request(url,signal,format){
+ let response;try{response=await fetch(url,{signal,headers:{Accept:format==='json'?'application/json':'application/vnd.google-earth.kml+xml,application/xml,text/xml,*/*'}});}catch(error){if(error.name==='AbortError')throw error;throw new LookupError('Unable to reach ACMA. The browser may be offline, the service unavailable, or the network may block this request.');}
+ if(!response.ok)throw new LookupError('ACMA returned HTTP '+response.status+'.');
+ let text;try{text=await response.text();}catch(error){if(error.name==='AbortError')throw error;throw new LookupError('The ACMA response could not be read.');}
+ if(!text||text.length>5*1024*1024)throw new LookupError('ACMA returned an empty or oversized response.');
+ if(format==='json'){try{return JSON.parse(text);}catch{throw new LookupError('ACMA did not return valid JSON.');}}return text;
+}
+async function lookup(spec,signal){
+ const url=apiUrl(spec);
+ return parseSites(await request(url,signal,'json'),spec,url);
+}
+global.AcmaLookup=Object.freeze({LookupError,validateQuery,numericId,coordinate,apiUrl,parseSites,lookup});
+})(globalThis);
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script id="lookup-ui">
+(function(){
+'use strict';
+const byId=id=>document.getElementById(id),form=byId('search-form'),button=byId('search-button'),status=byId('status'),warnings=byId('warning'),results=byId('results'),detail=byId('detail'),fit=byId('fit'),mapAlert=byId('map-alert');
+let map=null,markers=null,base=null,sites=[],selected=null,currentResultMode='place',activeController=null,serial=0,markerById=new Map(),rowById=new Map();
+function say(text,tone='normal'){status.textContent=text;status.dataset.tone=tone;}
+function el(tag,text,cls){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(cls)node.className=cls;return node;}
+function empty(message){results.replaceChildren(el('p',message,'empty'));}
+function clearResults(){sites=[];selected=null;markerById.clear();rowById.clear();if(markers)markers.clearLayers();fit.disabled=true;byId('result-count').textContent='0 results';detail.replaceChildren(el('h2','Select a result'),el('p','Compare candidate names and positions against your known site location.'));warnings.hidden=true;warnings.textContent='';}
+const basemaps={topo:{service:'World_Topo_Map',attribution:'Tiles © Esri — Sources: Esri, HERE, Garmin, USGS, OpenStreetMap contributors and GIS User Community'},imagery:{service:'World_Imagery',attribution:'Tiles © Esri — Sources: Esri, Maxar, Earthstar Geographics and GIS User Community'}};
+function setBasemap(){if(!map)return;if(base)map.removeLayer(base);const chosen=basemaps[byId('basemap').value];base=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/'+chosen.service+'/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:chosen.attribution}).addTo(map);mapAlert.hidden=true;let fail=false;base.on('tileerror',()=>{if(!fail){fail=true;mapAlert.textContent='Some basemap tiles could not load. Try the other basemap; site results remain available.';mapAlert.hidden=false;}});}
+try{
+ if(typeof L==='undefined')throw new Error('The map library could not load.');
+ map=L.map('map',{scrollWheelZoom:false}).setView([-32.2,147.4],6);
+ markers=L.featureGroup().addTo(map);L.control.scale({imperial:false}).addTo(map);setBasemap();
+ new ResizeObserver(()=>map.invalidateSize()).observe(byId('map'));
+}catch(error){mapAlert.textContent='Map unavailable: '+error.message+' You can still search and inspect the site list.';mapAlert.hidden=false;byId('map').textContent='The interactive map could not load.';}
+function showAll(){if(!map||!markers||!markers.getLayers().length)return;map.fitBounds(markers.getBounds(),{padding:[35,35],maxZoom:16});}
+function link(text,url){const a=el('a',text);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
+function selectSite(id,zoom=true){
+ const site=sites.find(s=>s.id===id);if(!site)return;selected=id;
+ for(const [key,row] of rowById)row.setAttribute('aria-pressed',String(key===id));
+ for(const [key,marker] of markerById)marker.setStyle({radius:key===id?9:6,color:key===id?'#c65c00':'#005777',fillColor:key===id?'#ffab36':'#008cbe',weight:key===id?3:2});
+ detail.replaceChildren(el('span',currentResultMode==='id'?'Exact ACMA Site ID':'Candidate — review required','tag'),el('h2','Site '+site.id+' · '+(site.name||'Site name unavailable')));
+ const dl=document.createElement('dl');
+ const coords=site.coordinate?site.coordinate.lat.toFixed(6)+', '+site.coordinate.lon.toFixed(6):'Unavailable';
+ for(const [label,value] of [['Locality',[site.city,site.state,site.postcode].filter(Boolean).join(' · ')||'Not supplied'],['Description',site.description||'Not supplied'],['Latitude, longitude',coords],['Source',site.source]])dl.append(el('dt',label),el('dd',value));
+ detail.append(dl);const links=el('div',undefined,'links');links.append(link('ACMA site record',site.detailsUrl),link('Download KML',site.kmlUrl));
+ if(site.coordinate)links.append(link('Open in Google Earth','https://earth.google.com/web/@'+site.coordinate.lat+','+site.coordinate.lon+',100a,1800d,35y,0h,0t,0r'));
+ detail.append(links,el('p',site.datumNote,'coordinate-note'));
+ if(zoom&&map&&site.coordinate){map.setView([site.coordinate.lat,site.coordinate.lon],Math.max(map.getZoom(),16));markerById.get(id)?.openPopup();}
+}
+function showResults(result){
+ sites=result.sites;currentResultMode=result.mode;results.replaceChildren();byId('results-heading').textContent=result.mode==='id'?'Site result':'Candidate sites';
+ byId('result-count').textContent=sites.length+' result'+(sites.length===1?'':'s');
+ for(const site of sites){
+  const row=el('button',undefined,'result');row.type='button';row.setAttribute('aria-pressed','false');row.append(el('span',site.name||'Site name unavailable','result-name'),el('span','Site '+site.id+' · '+([site.city,site.state,site.postcode].filter(Boolean).join(' · ')||'Locality unavailable'),'result-meta'));
+  if(!site.coordinate)row.append(el('span','No usable coordinate — list only','result-note'));
+  row.addEventListener('click',()=>selectSite(site.id));results.append(row);rowById.set(site.id,row);
+  if(map&&site.coordinate){
+   const point=L.circleMarker([site.coordinate.lat,site.coordinate.lon],{radius:6,color:'#005777',weight:2,fillColor:'#008cbe',fillOpacity:.9});
+   const pop=el('div');pop.append(el('strong','Site '+site.id),el('span',site.name||'Name unavailable'),el('p',result.mode==='id'?'Exact lookup result':'Candidate for review'));
+   point.bindPopup(pop);point.bindTooltip('Site '+site.id);point.on('click',()=>selectSite(site.id,false));point.addTo(markers);markerById.set(site.id,point);
+  }
+ }
+ const mapped=sites.filter(s=>s.coordinate).length;fit.disabled=!map||mapped===0;
+ if(!sites.length){empty('No matching candidates found. Try a shorter place name, locality, road or landmark.');say('No ACMA candidates returned. Try an alternative place or site name.');}
+ else{
+  const total=result.total!==null?' ACMA reports '+result.total+' matching record'+(result.total===1?'':'s')+'.':'';
+  say(result.mode==='id'?'Site '+sites[0].id+' located.':sites.length+' candidate'+(sites.length===1?'':'s')+' returned; '+mapped+' with coordinates.'+total+' Select a candidate to review it.',result.warnings.length?'warning':'normal');
+  showAll();if(result.mode==='id')selectSite(sites[0].id,false);
+ }
+ if(result.warnings.length){warnings.textContent=result.warnings.join(' ');warnings.hidden=false;}
+}
+form.addEventListener('submit',async event=>{
+ event.preventDefault();let spec;try{spec=AcmaLookup.validateQuery(byId('query').value,byId('mode').value,byId('limit').value);}catch(error){say(error.message,'error');return;}
+ const run=++serial;activeController?.abort();const controller=new AbortController();activeController=controller;const timer=setTimeout(()=>controller.abort(),45000);
+ clearResults();empty('Searching ACMA…');say('Searching ACMA for '+spec.query+'…');button.disabled=true;button.textContent='Searching…';
+ try{const result=await AcmaLookup.lookup(spec,controller.signal);if(run===serial)showResults(result);}
+ catch(error){if(run!==serial)return;empty('No results loaded.');say(error.name==='AbortError'?'The search timed out. Try again or use a more specific place name.':error.message,'error');}
+ finally{clearTimeout(timer);if(run===serial){button.disabled=false;button.textContent='Search';activeController=null;}}
+});
+fit.addEventListener('click',showAll);byId('basemap').addEventListener('change',setBasemap);
+})();
+</script>
+</body>
+</html>
